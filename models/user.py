@@ -11,6 +11,7 @@ class User(Document):
     email = EmailField(required=True)
     hashed_password = StringField(required=True)
     is_verified = BooleanField(default=False)
+    disabled = BooleanField(default=True)
 
     meta = {
         "db_alias": "core",
