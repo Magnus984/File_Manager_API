@@ -8,7 +8,7 @@ from db import DB
 from auth import _hash_password
 from mongoengine import DoesNotExist
 from util._mail import send_verification_email
-from util._token import generate_verification_token, confirm_verification_token
+from util._token import generate_token, confirm_token
 
 router = APIRouter()
 
@@ -30,7 +30,7 @@ def register_user(user: RegisterUser):
                 detail="User already exists"
                 )
         else:
-            token = generate_verification_token(user.email)
+            token = generate_token(user.email, token_type="verification", expires_in=2)
             verification_url = f"http://127.0.0.1:8000/verify-email?token={token}"
             send_verification_email(user.email, verification_url)
             raise HTTPException(
@@ -43,7 +43,7 @@ def register_user(user: RegisterUser):
             hashed_password=_hash_password(user.password)
         )
         new_user.save()
-        token = generate_verification_token(user.email)
+        token = generate_token(user.email, token_type="verification", expires_in=2)
         verification_url = f"http://127.0.0.1:8000/verify-email?token={token}"
         send_verification_email(user.email, verification_url)
 
@@ -53,20 +53,15 @@ def register_user(user: RegisterUser):
 def verify_email(token: str):
     """Verifies email upon registration
     """
-    try:
-        email = confirm_verification_token(token)
-        if email:
+    email = confirm_token(token, expected_type="verification")
+    if email:
+        try:
             new_user = User.objects.get(email=email)
             new_user.is_verified = True
             new_user.save()
             return {"message": "Email verified successfully"}
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": str(e)}
-        )
-    except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={"message": "User not found"}
-            )
+        except DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"message": "User not found"}
+                )   
