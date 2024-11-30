@@ -10,24 +10,38 @@ load_dotenv()
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-def generate_verification_token(email: str) -> str:
-    """Generates verification token
+def generate_token(email: str, token_type: str, expires_in: int) -> str:
+    """Generates token
     """
-    expiration = datetime.utcnow() + timedelta(minutes=10)
+    expiration = datetime.utcnow() + timedelta(minutes=expires_in)
     payload = {
         "email": email,
-        "exp": expiration
+        "type": token_type,
+        "exp": expiration,
+        "iat": datetime.utcnow()
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
     return token
 
-def confirm_verification_token(token: str) -> str:
-    """Confirms verification token
+def confirm_token(token: str, expected_type: str) -> str:
+    """Confirms token
     """
     try:
         payload = jwt.decode(token, SECRET_KEY,algorithms=["HS256"])
-        return payload["email"]
+        email = payload.get["email"]
+        if email is None or token_type != expected_type:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid token type or payload"
+            )
+        return email
     except jwt.ExpiredSignatureError:
-        raise ValueError("Token has expired")
-    except jwt.InvalidTokenError:
-        raise ValueError("Invalid token")
+         raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired"
+        )
+    except jwt.JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token"
+        )
