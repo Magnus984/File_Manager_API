@@ -8,6 +8,7 @@ class User(Document):
     """Defines user document
     """
     id = ObjectIdField(primary_key=True, default=ObjectId)
+    username = StringField(required=True)
     email = EmailField(required=True)
     hashed_password = StringField(required=True)
     is_verified = BooleanField(default=False)

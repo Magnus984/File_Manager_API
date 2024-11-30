@@ -28,7 +28,8 @@ def confirm_token(token: str, expected_type: str) -> str:
     """
     try:
         payload = jwt.decode(token, SECRET_KEY,algorithms=["HS256"])
-        email = payload.get["email"]
+        email = payload.get("email")
+        token_type = payload.get("type")
         if email is None or token_type != expected_type:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -40,7 +41,7 @@ def confirm_token(token: str, expected_type: str) -> str:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired"
         )
-    except jwt.JWTError:
+    except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid token"
