@@ -11,6 +11,8 @@ from util._mail import send_verification_email
 from util._token import generate_token, confirm_token
 from auth import get_current_active_user
 from typing import Annotated
+from fastapi.security import OAuth2PasswordRequestForm
+import temp
 
 router = APIRouter()
 
@@ -35,7 +37,13 @@ def register_user(user: RegisterUser):
         else:
             token = generate_token(user.email, token_type="verification", expires_in=2)
             verification_url = f"http://127.0.0.1:8000/verify-email?token={token}"
-            send_verification_email(user.email, verification_url)
+            try:
+                send_verification_email(user.email, verification_url)
+            except Exception:
+                raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to send email. Please try again."
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User already exists but not verfied. Email verfication link sent"
@@ -49,7 +57,13 @@ def register_user(user: RegisterUser):
         new_user.save()
         token = generate_token(user.email, token_type="verification", expires_in=2)
         verification_url = f"http://127.0.0.1:8000/verify-email?token={token}"
-        send_verification_email(user.email, verification_url)
+        try:
+            send_verification_email(user.email, verification_url)
+        except Exception:
+            raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send email. Please try again."
+        )
 
         return {
             "email": user.email,
@@ -84,3 +98,63 @@ async def read_users_me(
         "username": current_user.username,
         "email": current_user.email
     }
+
+
+@router.post("/reset_password")
+async def reset_password(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    ):
+    """Initiates password reset by sending a verification email.
+    """
+    try:
+        username = form_data.username
+        password = form_data.password
+        if len(password) < 8:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password must be at least 8 characters"
+            )
+        user = User.objects.get(username=username)
+        hashed_password = _hash_password(password)
+        token = generate_token(user.email, token_type="verification", expires_in=10)
+        temp.store_temp_data(token, hashed_password)
+        verification_url = f"http://127.0.0.1:8000/change-password?token={token}"
+        try:
+            send_verification_email(user.email, verification_url)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to send password reset email. Please try again later."
+            )
+        return {"message": "Password reset email sent successfully"}
+    except DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User does not exist"
+        )
+
+
+@router.get("/change-password")
+def change_password(token: str):
+    """Validates the token and updates the user's password.
+    """
+    try:
+        email = confirm_token(token, "verification")
+        hashed_password = temp.retrieve_temp_data(token)
+        print(f"The type of {hashed_password} is:", type(hashed_password))
+        if not hashed_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired token"
+            )
+
+        user = User.objects.get(email=email)
+        user.hashed_password = hashed_password.decode('utf-8')
+        user.save()
+        temp.delete_temp_data(token)
+        return {"message": "Password updated successfully"}
+    except DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User does not exist"
+        )

@@ -5,6 +5,7 @@ import jwt
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
+from fastapi import HTTPException, status
 
 load_dotenv()
 
