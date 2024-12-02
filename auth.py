@@ -27,7 +27,6 @@ def _hash_password(password: str) -> bytes:
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     """Gets current user
     """
-    print("get_current_user executing")
     try:
         email = confirm_token(token=token, expected_type="access")
         try:
@@ -44,7 +43,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 async def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    print("get_current_active_user executing")
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
