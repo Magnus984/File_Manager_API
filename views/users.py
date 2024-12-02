@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Module of user views
+"""Module for user views
 """
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, HTTPException, Depends, responses
 from models.user import User
 from pydantic import BaseModel, EmailStr
 from db import DB
@@ -22,6 +22,12 @@ class RegisterUser(BaseModel):
     username: str
     email: EmailStr
     password: str
+
+
+@router.get("/")
+def root():
+    return responses.RedirectResponse("/docs")
+
 
 @router.post("/register-user", status_code=status.HTTP_201_CREATED)
 def register_user(user: RegisterUser):
