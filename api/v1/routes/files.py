@@ -92,6 +92,23 @@ async def view_all():
             detail=f"{e}"
         )
 #download files
-##get files from database and store it on local system
+@router.get("/download/{file_name}")
+async def download_file(file_name: str):
+    """Download file
+    """
+    try:
+        file = File.objects(name=file_name).first()
+        if not file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File '{file_name}' not found"
+            )
+        return responses.StreamingResponse(
+            iter([file.data.read()]),
+            media_type=file.data.content_type or "application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={file.name}"}
+        )
+    except Exception as e:
+        return responses.JSONResponse(content={"error": str(e)})
+
 #delete files
-##delete files from database
