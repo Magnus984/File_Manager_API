@@ -2,13 +2,8 @@
 """FastAPI app
 """
 from fastapi import FastAPI
-from views.users import router as users_router
-from views.files import router as files_router
-from auth import router as auth_router
-from config import settings
+from api.v1.routes import api_router
+from config.config import settings
 
 app = FastAPI(title=settings.PROJECT_TITLE)
-
-app.include_router(users_router)
-app.include_router(auth_router)
-app.include_router(files_router)
+app.include_router(api_router, prefix="/api/v1")

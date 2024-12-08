@@ -2,17 +2,18 @@
 """Module for user views
 """
 from fastapi import APIRouter, status, HTTPException, Depends, responses
-from models.user import User
+from schemas.user import User
 from pydantic import BaseModel, EmailStr
-from db import DB
-from auth import _hash_password
+from config.db import DB
+from .auth import _hash_password
+from .auth import get_current_active_user
 from mongoengine import DoesNotExist
-from util._mail import send_verification_email
-from util._token import generate_token, confirm_token
-from auth import get_current_active_user
+from ..util._mail import send_verification_email
+from ..util._token import generate_token, confirm_token
+from ..util import temp
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
-import temp
+
 
 router = APIRouter()
 
@@ -24,12 +25,7 @@ class RegisterUser(BaseModel):
     password: str
 
 
-@router.get("/")
-def root():
-    return responses.RedirectResponse("/docs")
-
-
-@router.post("/register-user", status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(user: RegisterUser):
     """Registers new user
     """
@@ -42,7 +38,7 @@ def register_user(user: RegisterUser):
                 )
         else:
             token = generate_token(user.email, token_type="verification", expires_in=2)
-            verification_url = f"http://127.0.0.1:8000/verify-email?token={token}"
+            verification_url = f"http://127.0.0.1:8000/api/v1/user/verify?token={token}"
             try:
                 send_verification_email(user.email, verification_url)
             except Exception:
@@ -62,7 +58,7 @@ def register_user(user: RegisterUser):
         )
         new_user.save()
         token = generate_token(user.email, token_type="verification", expires_in=2)
-        verification_url = f"http://127.0.0.1:8000/verify-email?token={token}"
+        verification_url = f"http://127.0.0.1:8000/api/v1/user/verify?token={token}"
         try:
             send_verification_email(user.email, verification_url)
         except Exception:
@@ -77,7 +73,7 @@ def register_user(user: RegisterUser):
             "message": "User registered successfully. Email verification link sent"
             }
 
-@router.get("/verify-email")
+@router.get("/verify")
 def verify_email(token: str):
     """Verifies email upon registration
     """
@@ -94,7 +90,7 @@ def verify_email(token: str):
                 detail={"message": "User not found"}
                 )
 
-@router.get("/users/me")
+@router.get("/me")
 async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
@@ -106,7 +102,7 @@ async def read_users_me(
     }
 
 
-@router.post("/reset_password")
+@router.post("/reset-password")
 async def reset_password(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
     ):
@@ -124,7 +120,7 @@ async def reset_password(
         hashed_password = _hash_password(password)
         token = generate_token(user.email, token_type="verification", expires_in=10)
         temp.store_temp_data(token, hashed_password)
-        verification_url = f"http://127.0.0.1:8000/change-password?token={token}"
+        verification_url = f"http://127.0.0.1:8000/api/v1/user/change-password?token={token}"
         try:
             send_verification_email(user.email, verification_url)
         except Exception:

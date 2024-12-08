@@ -5,12 +5,12 @@ import bcrypt
 from typing import Annotated
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from models.user import User
-from util._token import generate_token, confirm_token
+from schemas.user import User
+from ..util._token import generate_token, confirm_token
 from fastapi import APIRouter, Depends, HTTPException
 from mongoengine import DoesNotExist
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 router = APIRouter()
 
 
@@ -48,8 +48,10 @@ async def get_current_active_user(
     return current_user
 
 
-@router.post("/token")
+@router.post("/login")
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    """Logs in User
+    """
     try:
         username = form_data.username
         user = User.objects.get(username=username)

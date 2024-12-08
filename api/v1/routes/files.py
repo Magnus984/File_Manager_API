@@ -3,11 +3,11 @@
 """
 from fastapi import APIRouter, status, HTTPException, UploadFile, File as FastAPIFile 
 from pydantic import BaseModel
-from models.file import File
+from schemas.file import File
 import datetime
-from util import _enum
+from ..util import _enum
 import os
-from db import DB
+from config.db import DB
 
 router = APIRouter()
 

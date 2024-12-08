@@ -2,7 +2,7 @@
 """Module for file document
 """
 from mongoengine import StringField, DateTimeField, EnumField, ObjectIdField, Document, FileField
-from util._enum import Filetype
+from api.v1.util._enum import Filetype
 from datetime import datetime
 from bson import ObjectId
 
