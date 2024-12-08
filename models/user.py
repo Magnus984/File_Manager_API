@@ -15,6 +15,5 @@ class User(Document):
     disabled = BooleanField(default=True)
 
     meta = {
-        "db_alias": "core",
         "collection": "users"
     }

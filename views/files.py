@@ -7,41 +7,31 @@ from models.file import File
 import datetime
 from util import _enum
 import os
+from db import DB
 
 router = APIRouter()
 
 conn = DB()
 
-#create files
-class CreateFile(BaseModel):
-    name: str
-    file_type: str
 
-@router.post("/create-file")
-async def create_file(file: CreateFile, uploaded_file: UploadFile = FastAPIFile(...)):
-    """Creates file of specific type and store in database
+
+@router.post("/upload-file")
+async def upload_file(uploaded_file: UploadFile = FastAPIFile(...)):
+    """Upload file of specific type and store in database
     """
     #do validation
     try:
-        file_type_enum = _enum.FileType.from_mime_type(uploaded_file.content_type)
-        print(f"File type: {file_type_enum.name}")
-        upload_path = f"/uploads/{file.name}.{file_type_enum}"
-        os.makedirs("/uploads", exist_ok=True)
-        #Creating and saving file on disk
-        with open(upload_path, "wb") as fd:
-            fd.write(await uploaded_file.read())
-        #creating file object
-        newfile = File(
-            name = file.name,
-            file_type = file_type_enum,
-            file_path = upload_path,
+        file_type_enum = _enum.Filetype.from_mime_type(uploaded_file.content_type)
+        new_file = File(
+            name=uploaded_file.filename,
+            file_type=file_type_enum,
         )
-        newfile.save()
+        new_file.data.put(uploaded_file.file, content_type=uploaded_file.content_type)
+        new_file.save()
         return {
             "message": "file created",
-            "file_id": str(newfile.id),
-            "file_name": newfile.name,
-            "file_path": newfile.file_path
+            "file_id": str(new_file.id),
+            "file_name": new_file.name,
             }
     except ValueError as e:
         raise HTTPException(

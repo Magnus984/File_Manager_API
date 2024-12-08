@@ -2,7 +2,7 @@
 """Module for file document
 """
 from mongoengine import StringField, DateTimeField, EnumField, ObjectIdField, Document, FileField
-from util._enum import File_type
+from util._enum import Filetype
 from datetime import datetime
 from bson import ObjectId
 
@@ -12,11 +12,10 @@ class File(Document):
     """
     id = ObjectIdField(primary_key=True, default=ObjectId)
     name = StringField(required=True)
-    file_type = EnumField(File_type, required=True)
-    file_path = FileField(required=True)
+    file_type = EnumField(Filetype)
+    data = FileField()
     date_modified = DateTimeField(default=datetime.now)
 
     meta = {
-        "db_alias": "core",
         "collection": "files"
     }
