@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Module for file views
 """
-from fastapi import APIRouter, status, HTTPException, UploadFile, responses, File as FastAPIFile 
+from .auth import get_current_active_user
+from typing import Annotated
+from fastapi import APIRouter, status, HTTPException, UploadFile, Depends, responses, File as FastAPIFile 
 from pydantic import BaseModel
 from schemas.file import File
+from schemas.user import User
 import datetime
 from ..util import _enum
 import os
@@ -18,7 +21,10 @@ conn = DB()
 
 
 @router.post("/upload")
-async def upload_file(uploaded_file: UploadFile = FastAPIFile(...)):
+async def upload_file(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    uploaded_file: UploadFile = FastAPIFile(...),
+    ):
     """Upload file of specific type and store in database
     """
     #do validation
@@ -47,7 +53,10 @@ async def upload_file(uploaded_file: UploadFile = FastAPIFile(...)):
     
 #view files
 @router.get("/view/{file_name}")
-async def view_one(file_name: str):
+async def view_one(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    file_name: str
+    ):
     """View a specific file
     """
     try:
@@ -70,7 +79,7 @@ async def view_one(file_name: str):
 
 #view all files
 @router.get("/view")
-async def view_all():
+async def view_all(current_user: Annotated[User, Depends(get_current_active_user)]):
     """View all files
     """
     try:
@@ -93,7 +102,10 @@ async def view_all():
         )
 #download files
 @router.get("/download/{file_name}")
-async def download_file(file_name: str):
+async def download_file(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    file_name: str
+    ):
     """Download file
     """
     try:
@@ -113,7 +125,10 @@ async def download_file(file_name: str):
 
 #delete files
 @router.get("/delete/{file_name}")
-async def delete_file(file_name: str):
+async def delete_file(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    file_name: str
+    ):
     """Delete flie
     """
     try:
