@@ -112,3 +112,20 @@ async def download_file(file_name: str):
         return responses.JSONResponse(content={"error": str(e)})
 
 #delete files
+@router.get("/delete/{file_name}")
+async def delete_file(file_name: str):
+    """Delete flie
+    """
+    try:
+        file = File.objects(name=file_name).first()
+        if not file:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File '{file_name}' not found"
+            )
+        file.data.delete()
+        file.delete()
+        file.save
+        return {"message": "File deleted"}, 200
+    except Exception as e:
+        return responses.JSONResponse(content={"error": str(e)})
