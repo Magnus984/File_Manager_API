@@ -20,8 +20,8 @@ services:
       - MONGO_HOST=db
       - MONGO_PORT=27017
       - SECRET_KEY=docker_file_manager
-      - SENDER_EMAIL=tettehmagnus35@gmail.com
-      - SENDER_PASSWORD=vciruxqqbhwtibge
+      - SENDER_EMAIL=email
+      - SENDER_PASSWORD=password
 
   db:
     image: mongo
