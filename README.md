@@ -30,4 +30,4 @@ A basic API that allows authenticated users to upload to and manage files.
 
 4. Start up application by running
 
-```docker compose up```
+    ```docker compose up```
