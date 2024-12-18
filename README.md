@@ -18,6 +18,10 @@ A basic API that allows authenticated users to upload to and manage files.
 - FastAPI
 - MongoDB
 
+## Prerequisite
+
+Reach out via email for important credentials for the compose.yaml
+
 ## Usage
 
 1. Clone the repo using the following command
