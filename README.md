@@ -20,7 +20,7 @@ A basic API that allows authenticated users to upload to and manage files.
 
 ## Prerequisite
 
-Reach out via email for important credentials for the compose.yaml
+Reach out via email for important credentials for the compose.yaml file
 
 ## Usage
 
