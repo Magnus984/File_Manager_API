@@ -61,16 +61,16 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     if not bcrypt.checkpw(password_to_byte, user.hashed_password.encode('utf-8')):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     access_token = generate_token(user.email, token_type="access", expires_in=30)
-    refresh_token = generate_token(user.email, token_type="refresh", expires_in=60 * 24)
+    #refresh_token = generate_token(user.email, token_type="refresh", expires_in=60 * 24)
     user.disabled = False
     user.save()
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "token_type": "bearer"
         }
 
 
+"""
 @router.post("/token/refresh")
 async def refresh_token(refresh_token: str):
     try:
@@ -87,6 +87,7 @@ async def refresh_token(refresh_token: str):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid refresh token."
         )
+"""
 
 @router.post("/logout")
 async def logout_user(current_user: Annotated[User, Depends(get_current_active_user)]):
