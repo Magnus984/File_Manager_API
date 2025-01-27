@@ -35,3 +35,5 @@ Reach out via email for important credentials for the compose.yaml file
 4. Start up application by running
 
     ```docker compose up```
+
+**Note:** All endpoints are prefixed with "/api/v1/{endpoint}"
